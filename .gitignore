@@ -13,3 +13,10 @@ Desktop.ini
 # IDE
 .idea/
 .vscode/
+
+# Claude Code
+.claude/
+
+# Dossiers simplifiés (évite les conflits de pull)
+eco_arcade\ simplifiée/
+"eco_arcade simplifiée/"
