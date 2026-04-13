@@ -52,7 +52,7 @@ def creer_space(data):
         "laser_img":   sprite("laser"),
         "ship_x":      float(W // 2),
         "vx":          0.0,
-        "lasers":      [],      # CM2 : liste de [x, y]
+        "lasers":      [],
         "cool":        0.0,
         "energy":      100.0,
         "debris":      [],
@@ -137,7 +137,7 @@ def mettre_a_jour_space(state, dt):
                 d["hp"] -= 1
                 touche = True
                 if d["hp"] <= 0:
-                    pts = pts_par_taille.get(d["sz"], 1)    # CM5 : dict.get
+                    pts = pts_par_taille.get(d["sz"], 1)
                     state["score"] += pts
                     state["float_texts"].append(
                         [d["x"], d["y"], "+" + str(pts), 0.0, (255, 220, 60)]
@@ -156,14 +156,12 @@ def mettre_a_jour_space(state, dt):
             if d in state["debris"]:
                 state["debris"].remove(d)
 
-    # — Spawn —
     state["spawn_t"] += dt
     seuil = max(0.4, 1.2 - state["diff"] * 0.02)
     if state["spawn_t"] >= seuil:
         state["spawn_t"] = 0.0
         spawner_debris(state)
 
-    # — Textes flottants —
     for ft in state["float_texts"][:]:
         ft[1] -= 45 * dt
         ft[3] += dt
@@ -219,7 +217,7 @@ def dessiner_space(screen, state):
 
     font_coeur = pygame.font.Font(None, 30)
     vies_str = ""
-    for _ in range(state["lives"]):     # CM1 : for
+    for _ in range(state["lives"]):
         vies_str += "♥ "
     vies_str = vies_str.rstrip()
     screen.blit(font_coeur.render("VIES", True, (120, 130, 160)), (W - 68, 4))
