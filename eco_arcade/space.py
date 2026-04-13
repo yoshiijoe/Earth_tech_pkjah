@@ -2,18 +2,12 @@ import random
 import pygame
 from config import W, H, clamp, lerp_col, sprite
 
-# ── Constantes ────────────────────────────────────────────────────────────────
-SHIP_Y      = H - 95        # position Y fixe du vaisseau (remplace @property)
+
+SHIP_Y      = H - 95
 TEMPS_TOTAL = 60.0
 
-
-# ── Spawn helper ──────────────────────────────────────────────────────────────
 def spawner_debris(state):
-    """
-    Ajoute un débris spatial à la liste.
-    CM1 : if/elif  |  CM2 : append  |  CM3 : random.randint, random.uniform
-    """
-    # Remplacement de random.choices (non vu en cours) par if/elif (CM1)
+
     r = random.random()
     if r < 0.6:
         sz = "small"
@@ -22,7 +16,6 @@ def spawner_debris(state):
     else:
         sz = "large"
 
-    # CM5 : dictionnaire pour les hp selon la taille
     hp_par_taille = {"small": 1, "medium": 2, "large": 3}
     hp = hp_par_taille.get(sz, 1)
 
@@ -40,10 +33,9 @@ def spawner_debris(state):
     })
 
 
-# ── Création de l'état (CM5 : dictionnaire) ───────────────────────────────────
+
 def creer_space(data):
-    """Initialise et retourne le dictionnaire d'état du jeu Espace."""
-    # Fond étoilé généré une seule fois (CM1 : for  |  CM3 : random)
+
     bg = pygame.Surface((W, H))
     bg.fill((8, 10, 18))
     for _ in range(180):
@@ -58,17 +50,13 @@ def creer_space(data):
         "bg":          bg,
         "ship_img":    sprite("ship"),
         "laser_img":   sprite("laser"),
-        # Vaisseau
         "ship_x":      float(W // 2),
         "vx":          0.0,
-        # Tir
         "lasers":      [],      # CM2 : liste de [x, y]
         "cool":        0.0,
         "energy":      100.0,
-        # Entités (CM2 : listes)
         "debris":      [],
         "float_texts": [],
-        # Stats
         "score":       0,
         "lives":       3,
         "time_left":   TEMPS_TOTAL,
@@ -79,13 +67,9 @@ def creer_space(data):
     return state
 
 
-# ── Gestion des événements ─────────────────────────────────────────────────────
+
 def gerer_space(state, event):
-    """
-    Gère un événement pygame.
-    Retourne 'menu', 'pause' ou None.
-    CM1 : if/elif
-    """
+
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_ESCAPE:
             return "menu"
@@ -100,22 +84,17 @@ def gerer_space(state, event):
     return None
 
 
-# ── Mise à jour ────────────────────────────────────────────────────────────────
 def mettre_a_jour_space(state, dt):
-    """
-    Met à jour toute la physique du jeu Espace.
-    Retourne 'fin' si la partie est terminée, sinon None.
-    CM1 : if/elif, for  |  CM2 : append, remove, len  |  CM5 : dict.get
-    """
+
     state["time_left"] -= dt
     state["diff"]      += dt
 
-    # — Fin de partie —
+
     if state["time_left"] <= 0 or state["lives"] <= 0:
         state["details"] = [("Débris détruits", str(state["score"]))]
         return "fin"
 
-    # — Vaisseau —
+
     keys = pygame.key.get_pressed()
     ax = 0
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -125,21 +104,21 @@ def mettre_a_jour_space(state, dt):
     state["vx"]     = clamp(state["vx"] * (1 - 10 * dt) + ax * dt, -300, 300)
     state["ship_x"] = clamp(state["ship_x"] + state["vx"] * dt, 40, W - 40)
 
-    # — Énergie et cooldown —
+
     state["energy"] = min(100.0, state["energy"] + 28 * dt)
     if state["cool"] > 0:
         state["cool"] -= dt
 
-    # — Lasers —
-    for l in state["lasers"][:]:    # CM1 : for  |  CM2 : copie de liste
+
+    for l in state["lasers"][:]:
         l[1] -= 560 * dt
         if l[1] < -20:
-            state["lasers"].remove(l)   # CM2 : remove
+            state["lasers"].remove(l)
 
-    # — Débris —
+
     ship_rect = pygame.Rect(state["ship_x"] - 25, SHIP_Y - 20, 50, 60)
 
-    # CM5 : dictionnaire points par taille
+
     pts_par_taille = {"small": 1, "medium": 2, "large": 3}
 
     for d in state["debris"][:]:
@@ -194,12 +173,9 @@ def mettre_a_jour_space(state, dt):
     return None
 
 
-# ── Dessin ─────────────────────────────────────────────────────────────────────
+
 def dessiner_space(screen, state):
-    """
-    Affiche tout le jeu Espace.
-    CM1 : for, if  |  CM2 : itération de liste  |  CM5 : dict.get
-    """
+
     screen.blit(state["bg"], (0, 0))
 
     for l in state["lasers"]:
@@ -227,20 +203,20 @@ def dessiner_space(screen, state):
         s.set_alpha(a)
         screen.blit(s, (int(ft[0]), int(ft[1])))
 
-    # HUD — bande semi-transparente en haut
+
     hud = pygame.Surface((W, 38))
     hud.set_alpha(140)
     hud.fill((0, 0, 0))
     screen.blit(hud, (0, 0))
 
-    # Score (gauche)
+
     font_score = pygame.font.Font(None, 36)
     score_lbl = state["font"].render("SCORE", True, (120, 130, 160))
     score_val = font_score.render(str(state["score"]), True, (255, 255, 255))
     screen.blit(score_lbl, (12, 4))
     screen.blit(score_val, (12, 20))
 
-    # Vies (droite)
+
     font_coeur = pygame.font.Font(None, 30)
     vies_str = ""
     for _ in range(state["lives"]):     # CM1 : for
@@ -249,7 +225,7 @@ def dessiner_space(screen, state):
     screen.blit(font_coeur.render("VIES", True, (120, 130, 160)), (W - 68, 4))
     screen.blit(font_coeur.render(vies_str,  True, (220, 70, 70)),  (W - 68, 20))
 
-    # Énergie (centre)
+
     pct = state["energy"] / 100.0
     screen.blit(state["font"].render("NRJ", True, (180, 180, 200)), (W // 2 - 108, 10))
     pygame.draw.rect(screen, (40, 40, 55), (W // 2 - 80, 12, 160, 14), border_radius=7)
@@ -259,7 +235,7 @@ def dessiner_space(screen, state):
         ecol = (220, 80, 80)
     pygame.draw.rect(screen, ecol, (W // 2 - 80, 12, int(160 * pct), 14), border_radius=7)
 
-    # Barre de temps verticale (bord droit)
+
     tpct = max(0, state["time_left"] / TEMPS_TOTAL)
     pygame.draw.rect(screen, (40, 40, 55), (W - 22, 48, 12, H - 68), border_radius=6)
     fh = int((H - 68) * tpct)
